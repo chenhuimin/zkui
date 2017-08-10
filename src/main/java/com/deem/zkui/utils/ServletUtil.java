@@ -1,45 +1,43 @@
 /**
- *
  * Copyright (c) 2014, Deem Inc. All Rights Reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- *
  */
 package com.deem.zkui.utils;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import org.apache.zookeeper.ZooKeeper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public enum ServletUtil {
 
     INSTANCE;
     private final static Logger logger = LoggerFactory.getLogger(ServletUtil.class);
 
-    public void renderHtml(HttpServletRequest request, HttpServletResponse response, Map<String, Object> templateParam, String view) throws IOException, TemplateException {
+    public void renderHtml(HttpServletRequest request, HttpServletResponse response, Map<String, Object>
+            templateParam, String view) throws IOException, TemplateException {
 
         if (request != null && response != null && templateParam != null) {
             //There is no way to access session info in freemarker template. 
@@ -56,7 +54,7 @@ public enum ServletUtil {
                 templateParam.put("authRole", session.getAttribute("authRole"));
 
                 response.setContentType("text/html;charset=UTF-8");
-                
+
                 Template template = null;
                 long startTime = System.currentTimeMillis();
                 Configuration config = new Configuration();
@@ -88,7 +86,8 @@ public enum ServletUtil {
 
     }
 
-    public ZooKeeper getZookeeper(HttpServletRequest request, HttpServletResponse response, String zkServer, Properties globalProps) {
+    public ZooKeeper getZookeeper(HttpServletRequest request, HttpServletResponse response, String zkServer,
+                                  Properties globalProps) {
         try {
 
             HttpSession session = request.getSession();
@@ -99,6 +98,7 @@ public enum ServletUtil {
                 zkSessionTimeout = zkSessionTimeout * 1000;
                 zk = ZooKeeperUtil.INSTANCE.createZKConnection(zkServer, zkSessionTimeout);
                 ZooKeeperUtil.INSTANCE.setDefaultAcl(globalProps.getProperty("defaultAcl"));
+                ZooKeeperUtil.INSTANCE.addAuthInfo(globalProps.getProperty("defaultAcl"), zk);
                 if (zk.getState() != ZooKeeper.States.CONNECTED) {
                     session.setAttribute("zk", null);
                 } else {
